@@ -9,8 +9,6 @@ mk2@mk2.red
 https://mk2.red
 
 * 自己紹介
-
-* 
 - 朝倉 遼
 - 2018/08入社(転職)
 - 30歳まで東京
@@ -54,7 +52,7 @@ https://mk2.red
 
 * 実装していく
 
-https://github.com/mk2/yon
+.link https://github.com/mk2/yon
 
 3年前にGo1.5で実装。最近またいじり始めたが、特に大きな修正なく動いている。 *後方互換性* バンザイ！
 
@@ -66,23 +64,17 @@ https://github.com/mk2/yon
 
 一般的には、下記のように言語処理系は動く。
 
-文字列
-
-↓ (Lexer、以降トークン変換器)
-
-トークンの列
-
-↓ (Parser、以降ワード変換器)
-
-プログラムを構成する要素の列
-
-↓ (Interpreter、以降解釈器)
-
-逐次実行処理
+  文字列
+   ↓ (Lexer、以降トークン変換器)
+  トークンの列
+   ↓ (Parser、以降ワード変換器)
+  プログラムを構成する要素の列
+   ↓ (Interpreter、以降解釈器)
+  逐次実行処理
 
 Goでやる場合も同じ。
 
-* トークン変換器の実装
+* Lexer/Parserの実装
 
 Rob Pike御大が出している、GoでのLexer実装パターンに則って実装。
 
@@ -90,6 +82,42 @@ Rob Pike御大が出している、GoでのLexer実装パターンに則って�
 
 - Lexerの実装方法は無数にあるが、御大は、ツールや正規表現に頼るよりも自分で書くことを勧めている
 
-* Lexer関数
+* 状態関数
 
   type stateFn func(*lexer) stateFn
+
+- 状態を関数として表現する
+- 関数を評価すると、次の状態（関数）が手に入る
+
+* Goroutineとどう合わせて使うか？
+
+- 状態関をGoroutineとして実行
+- トークンが生成できたら、チャンネルに送信する
+
+* サンプル
+
+.code ./code/lexer.go /START LEXER_TYPE OMIT/,/END LEXER_TYPE OMIT/
+
+* サンプル
+
+.code ./code/lexer.go /START NEW_LEXER OMIT/,/END NEW_LEXER OMIT/
+
+.code ./code/lexer.go /START LEXER_RUN OMIT/,/END LEXER_RUN OMIT/
+
+* サンプル
+
+.code ./code/lexer.go /START STATEFN_START OMIT/,/END STATEFN_START OMIT/
+
+.code ./code/lexer.go /START STATEFN_END OMIT/,/END STATEFN_END OMIT/
+
+* Rob Pike法のメリット
+
+他のやり方を書いたことがないので、明確にこれが良い、というのは言えない。
+ただ、stateFnのやり方でLexer/Parser両方書けるので、汎用性は高いやり方なんだと思う。
+
+* インタプリタの実装
+
+- やってて一番楽しい部分 
+- Lexer/Parserの苦痛はここで報われる
+
+だがしかし、ちょっとここまで書く余裕がありませんでした！

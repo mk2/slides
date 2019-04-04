@@ -60,7 +60,7 @@ https://mk2.red
 
 こんな感じのコードを実行可能です。
 
-* プログラミング環境を実装するということ
+* プログラミング言語処理系を実装するということ
 
 一般的には、下記のように言語処理系は動く。
 
@@ -74,13 +74,23 @@ https://mk2.red
 
 Goでやる場合も同じ。
 
-* Lexer/Parserの実装
+* Lexerの実装
 
 Rob Pike御大が出している、GoでのLexer実装パターンに則って実装。
 
 .link https://talks.golang.org/2011/lex.slide Lexical Scanning in Go - 30 August 2011, Rob Pike
 
-- Lexerの実装方法は無数にあるが、御大は、ツールや正規表現に頼るよりも自分で書くことを勧めている
+Lexerの実装方法はいくつかあるが、御大は、ツールや正規表現に頼るよりも自分で書くことを勧めている。
+
+- lexやragelのようなプログラムを生成してくれるツール
+
+大変な割に得るものが少ない by Rob Pike
+
+- 正規表現
+
+遅い、過剰 by Rob Pike
+
+- 状態・アクション、switch文で実装
 
 * 状態関数
 
@@ -88,23 +98,30 @@ Rob Pike御大が出している、GoでのLexer実装パターンに則って�
 
 - 状態を関数として表現する
 - 関数を評価すると、次の状態（関数）が手に入る
+- 再帰的な型定義
 
 * Goroutineとどう合わせて使うか？
 
-- 状態関をGoroutineとして実行
+- 状態関数をGoroutineとして実行
 - トークンが生成できたら、チャンネルに送信する
 
 * サンプル
 
+lexer型の定義
+
 .code ./code/lexer.go /START LEXER_TYPE OMIT/,/END LEXER_TYPE OMIT/
 
 * サンプル
+
+lexerを開始するところ
 
 .code ./code/lexer.go /START NEW_LEXER OMIT/,/END NEW_LEXER OMIT/
 
 .code ./code/lexer.go /START LEXER_RUN OMIT/,/END LEXER_RUN OMIT/
 
 * サンプル
+
+状態関数の遷移部分
 
 .code ./code/lexer.go /START STATEFN_START OMIT/,/END STATEFN_START OMIT/
 
@@ -115,9 +132,54 @@ Rob Pike御大が出している、GoでのLexer実装パターンに則って�
 他のやり方を書いたことがないので、明確にこれが良い、というのは言えない。
 ただ、stateFnのやり方でLexer/Parser両方書けるので、汎用性は高いやり方なんだと思う。
 
+* Parserの実装
+
+yonに関しては、lexerとほぼ同じで、stateFnパターンで実装。
+
+正直良くわからずに実装してます。連鎖性プログラミング言語の場合、多分そこまで複雑な方法が必要ないので。
+
+* サンプル
+
+パーサーの定義部分
+
+.code code/parser.go /START PARSER_TYPE OMIT/,/END PARSER_TYPE OMIT/
+
+* サンプル
+
+パーサー開始部分
+
+.code code/parser.go /START PARSER_NEW OMIT/,/END PARSER_NEW OMIT/
+.code code/parser.go /START PARSER_RUN OMIT/,/END PARSER_RUN OMIT/
+
+* サンプル
+
+再帰的にstateFnが呼ばれていく部分
+
+.code code/parser.go /START STATEFN_START OMIT/,/END STATEFN_START OMIT/
+.code code/parser.go /START PARSE_ANON_FUNC OMIT/,/END PARSE_ANON_FUNC OMIT/
+.code code/parser.go /START PARSE_ANON_FUNC_START OMIT/,/END PARSE_ANON_FUNC_START OMIT/
+.code code/parser.go /START PARSE_ANON_FUNC_BODY OMIT/,/END PARSE_ANON_FUNC_BODY OMIT/
+
+* サンプル
+
+続き
+
+.code code/parser.go /START PARSE_CHAIN_WORD_BODY OMIT/,/END PARSE_CHAIN_WORD_BODY OMIT/
+.code code/parser.go /START SQ_BRA OMIT/,/END SQ_BRA OMIT/
+.code code/parser.go /START PARSE_CHAIN_WORD_BODY_END OMIT/,/END PARSE_CHAIN_WORD_BODY_END OMIT/
+
+* サンプル
+
+続き
+
+.code code/parser.go /START PARSE_CHAIN_WORD_BODY OMIT/,/END PARSE_CHAIN_WORD_BODY OMIT/
 * インタプリタの実装
 
 - やってて一番楽しい部分 
 - Lexer/Parserの苦痛はここで報われる
 
 だがしかし、ちょっとここまで書く余裕がありませんでした！
+
+* まとめ
+
+僕のようなトーシローでも動くものが作りやすい、連鎖性プログラミング言語、おすすめです。

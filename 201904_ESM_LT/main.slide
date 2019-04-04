@@ -17,7 +17,7 @@ https://mk2.red
 
 * 今日話すこと
 - スタック指向かつ連鎖性言語の話
-- Goのlexerの書き方
+- Goでlexerを書くときのおすすめの方法
 
 * スタック指向プログラミング言語とは？
 
@@ -76,14 +76,14 @@ https://mk2.red
 一般的には、下記のように言語処理系は動く。
 
   文字列
-   ↓ (Lexer、以降トークン変換器)
+   ↓ (Lexer)
   トークンの列
-   ↓ (Parser、以降ワード変換器)
+   ↓ (Parser)
   プログラムを構成する要素の列
-   ↓ (Interpreter、以降解釈器)
+   ↓ (Interpreter)
   逐次実行処理
 
-Goでやる場合も同じ。
+※仮想マシンとか使うともっと複雑です。
 
 * Lexerの実装
 
@@ -113,16 +113,20 @@ Lexerの実装方法はいくつかあるが、御大は、ツールや正規表
 
 * Goroutineとどう合わせて使うか？
 
+.background image/muscle_gopher.png
+
 - 状態関数をGoroutineとして実行
 - トークンが生成できたら、チャンネルに送信する
 
-* サンプル
+* lexerのコード解説
+
+* 
 
 lexer型の定義
 
 .code ./code/lexer.go /START LEXER_TYPE OMIT/,/END LEXER_TYPE OMIT/
 
-* サンプル
+* 
 
 lexerを開始するところ
 
@@ -130,7 +134,7 @@ lexerを開始するところ
 
 .code ./code/lexer.go /START LEXER_RUN OMIT/,/END LEXER_RUN OMIT/
 
-* サンプル
+* 
 
 状態関数の遷移部分
 
@@ -140,8 +144,15 @@ lexerを開始するところ
 
 * Rob Pike法のメリット
 
-他のやり方を書いたことがないので、明確にこれが良い、というのは言えない。
-ただ、stateFnのやり方でLexer/Parser両方書けるので、汎用性は高いやり方なんだと思う。
+なんとなくわかりやすい気がする。
+
+昔Rustでもlexerを書いてみたが、
+
+.link https://github.com/mk2/muun/blob/master/src/lex/tokenizer.rs lexer by rust
+
+今読み返してもよくわからない。（状態がどう遷移してるのか読み取れない。）
+
+だがしかし、Goの方は久々に読み返してもよく分かる。（状態がどう動いているのか、関数の呼び出し部分だけ追っていけばわかる。）
 
 * Parserの実装
 
@@ -149,20 +160,22 @@ yonに関しては、lexerとほぼ同じで、stateFnパターンで実装。
 
 正直良くわからずに実装してます。連鎖性プログラミング言語の場合、多分そこまで複雑な方法が必要ないので。
 
-* サンプル
+* Parserのコード解説
 
-パーサーの定義部分
+* 
+
+Parserの定義部分
 
 .code code/parser.go /START PARSER_TYPE OMIT/,/END PARSER_TYPE OMIT/
 
-* サンプル
+* 
 
-パーサー開始部分
+Parser開始部分
 
 .code code/parser.go /START PARSER_NEW OMIT/,/END PARSER_NEW OMIT/
 .code code/parser.go /START PARSER_RUN OMIT/,/END PARSER_RUN OMIT/
 
-* サンプル
+* 
 
 再帰的にstateFnが呼ばれていく部分
 
@@ -171,19 +184,12 @@ yonに関しては、lexerとほぼ同じで、stateFnパターンで実装。
 .code code/parser.go /START PARSE_ANON_FUNC_START OMIT/,/END PARSE_ANON_FUNC_START OMIT/
 .code code/parser.go /START PARSE_ANON_FUNC_BODY OMIT/,/END PARSE_ANON_FUNC_BODY OMIT/
 
-* サンプル
-
-続き
+* 
 
 .code code/parser.go /START PARSE_CHAIN_WORD_BODY OMIT/,/END PARSE_CHAIN_WORD_BODY OMIT/
 .code code/parser.go /START SQ_BRA OMIT/,/END SQ_BRA OMIT/
 .code code/parser.go /START PARSE_CHAIN_WORD_BODY_END OMIT/,/END PARSE_CHAIN_WORD_BODY_END OMIT/
 
-* サンプル
-
-続き
-
-.code code/parser.go /START PARSE_CHAIN_WORD_BODY OMIT/,/END PARSE_CHAIN_WORD_BODY OMIT/
 * インタプリタの実装
 
 - やってて一番楽しい部分 
